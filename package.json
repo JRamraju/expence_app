@@ -1,0 +1,13 @@
+{
+  "name": "expense-income-platform",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["web", "mobile", "functions", "shared"],
+  "scripts": {
+    "dev:web": "npm --workspace web run dev",
+    "build:web": "npm --workspace web run build",
+    "dev:mobile": "npm --workspace mobile run start",
+    "build:functions": "npm --workspace functions run build",
+    "lint": "npm --workspace web run lint && npm --workspace mobile run lint && npm --workspace functions run lint"
+  }
+}

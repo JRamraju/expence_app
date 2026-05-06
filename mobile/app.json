@@ -1,0 +1,8 @@
+{
+  "expo": {
+    "name": "ExpenseMobile",
+    "slug": "expense-mobile",
+    "scheme": "expensemobile",
+    "plugins": ["expo-local-authentication"]
+  }
+}

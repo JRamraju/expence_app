@@ -1,0 +1,10 @@
+node_modules
+.env
+.env.*
+.firebase
+firebase-debug.log
+web/dist
+mobile/.expo
+mobile/.expo-shared
+mobile/build
+functions/lib
