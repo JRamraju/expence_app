@@ -2,6 +2,12 @@
   "expo": {
     "name": "ExpenseMobile",
     "slug": "expense-mobile",
+    "ios": {
+      "bundleIdentifier": "com.jram.expenseapp"
+    },
+    "android": {
+      "package": "com.jram.expenseapp"
+    },
     "scheme": "expensemobile",
     "plugins": ["expo-local-authentication"]
   }

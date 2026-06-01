@@ -7,10 +7,15 @@ import EntryPage from "features/entries/EntryPage";
 import ViewEntriesPage from "features/entries/ViewEntriesPage";
 import AnalyticsPage from "features/analytics/AnalyticsPage";
 import SettingsPage from "features/settings/SettingsPage";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function App() {
   return (
     <AuthProvider>
+      {/* ADD THIS: The ToastContainer must be rendered in the JSX */}
+      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+      
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route

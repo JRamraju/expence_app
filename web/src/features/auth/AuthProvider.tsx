@@ -22,6 +22,8 @@ interface AuthCtx {
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   changePassword: (oldPass: string, newPass: string) => Promise<void>;
+  // 1. Added reauthenticate to the interface
+  reauthenticate: (password: string) => Promise<void>; 
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -60,6 +62,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const credential = EmailAuthProvider.credential(auth.currentUser.email, oldPass);
       await reauthenticateWithCredential(auth.currentUser, credential);
       await updatePassword(auth.currentUser, newPass);
+    },
+    // 2. Implemented the reauthenticate function
+    reauthenticate: async (password: string) => {
+      if (!auth.currentUser?.email) throw new Error("No active user found.");
+      
+      const credential = EmailAuthProvider.credential(auth.currentUser.email, password);
+      await reauthenticateWithCredential(auth.currentUser, credential);
     }
   };
 

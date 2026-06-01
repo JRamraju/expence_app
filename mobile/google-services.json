@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "494558324994",
+    "project_id": "expenceapp-8fc69",
+    "storage_bucket": "expenceapp-8fc69.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:494558324994:android:f4686d0e3ba62057e2fa1b",
+        "android_client_info": {
+          "package_name": "com.jram.expenseapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "494558324994-iuhcus889r83to091q3qkiajj3rtdc86.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcxKZMKLZQWTXEIMa_MIN6mpRlaKTSUXE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "494558324994-iuhcus889r83to091q3qkiajj3rtdc86.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

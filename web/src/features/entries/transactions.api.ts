@@ -14,14 +14,18 @@ import {
 import { db } from "services/firebase";
 import { ACCOUNTS } from "@expense/shared/src";
 
+// REFINED: Use a Batch to execute all account creations in a single network request
 export async function seedAccounts(uid: string) {
+  const batch = writeBatch(db);
   for (const acc of ACCOUNTS) {
-    await setDoc(
-      doc(db, `users/${uid}/accounts/${acc}`),
+    const ref = doc(db, `users/${uid}/accounts/${acc}`);
+    batch.set(
+      ref,
       { name: acc, balance: 0, limit: 50000, updatedAt: Date.now() },
       { merge: true }
     );
   }
+  await batch.commit();
 }
 
 export async function getAccounts(uid: string) {
@@ -55,11 +59,19 @@ export async function addTransaction(uid: string, payload: {
   const summaryRef = doc(db, `users/${uid}/daily_summary/${date}`);
 
   await runTransaction(db, async (trx) => {
+    // ==========================================
+    // 1. ALL READS FIRST
+    // ==========================================
     const accountSnap = await trx.get(accountRef);
+    const summarySnap = await trx.get(summaryRef); // CRITICAL FIX: Moved this read up
+
     if (!accountSnap.exists()) {
       throw new Error("Selected account not found");
     }
 
+    // ==========================================
+    // 2. CALCULATIONS & VALIDATIONS
+    // ==========================================
     const accountData = accountSnap.data() as { balance: number; limit: number };
     const currentBalance = Number(accountData.balance || 0);
     const limit = Number(accountData.limit || 0);
@@ -72,6 +84,20 @@ export async function addTransaction(uid: string, payload: {
       payload.type === "income" ? currentBalance + payload.amount : currentBalance - payload.amount;
     const displayIdPrefix = payload.type === "income" ? "in" : "ex";
 
+    const existing = summarySnap.exists()
+      ? (summarySnap.data() as {
+          total_income: number;
+          total_expense: number;
+          transactions: string[];
+        })
+      : { total_income: 0, total_expense: 0, transactions: [] };
+
+    const totalIncome = existing.total_income + (payload.type === "income" ? payload.amount : 0);
+    const totalExpense = existing.total_expense + (payload.type === "expense" ? payload.amount : 0);
+
+    // ==========================================
+    // 3. ALL WRITES LAST
+    // ==========================================
     trx.set(
       txRef,
       {
@@ -96,18 +122,6 @@ export async function addTransaction(uid: string, payload: {
       },
       { merge: true }
     );
-
-    const summarySnap = await trx.get(summaryRef);
-    const existing = summarySnap.exists()
-      ? (summarySnap.data() as {
-          total_income: number;
-          total_expense: number;
-          transactions: string[];
-        })
-      : { total_income: 0, total_expense: 0, transactions: [] };
-
-    const totalIncome = existing.total_income + (payload.type === "income" ? payload.amount : 0);
-    const totalExpense = existing.total_expense + (payload.type === "expense" ? payload.amount : 0);
 
     trx.set(
       summaryRef,
@@ -142,26 +156,39 @@ export async function retentionFlag(uid: string) {
   return { hasOldData: !snap.empty, threshold };
 }
 
+// REFINED: Better querying and respects the 500 batch limit
 export async function deleteOldData(uid: string) {
   const threshold = Date.now() - 90 * 24 * 60 * 60 * 1000;
+  
   const oldTxSnap = await getDocs(
     query(collection(db, `users/${uid}/transactions`), where("createdAt", "<=", threshold))
   );
 
-  const oldSummarySnap = await getDocs(collection(db, `users/${uid}/daily_summary`));
+  // Instead of fetching all summaries, we only fetch the old ones
+  const oldSummarySnap = await getDocs(
+    query(collection(db, `users/${uid}/daily_summary`), where("updatedAt", "<=", threshold))
+  );
+
   const batch = writeBatch(db);
+  let opCount = 0;
 
   oldTxSnap.forEach((item) => {
-    batch.delete(item.ref);
-  });
-
-  oldSummarySnap.forEach((item) => {
-    if (new Date(item.id).getTime() <= threshold) {
+    if (opCount < 498) { // Firestore batch limit is 500
       batch.delete(item.ref);
+      opCount++;
     }
   });
 
-  await batch.commit();
+  oldSummarySnap.forEach((item) => {
+    if (opCount < 498) {
+      batch.delete(item.ref);
+      opCount++;
+    }
+  });
+
+  if (opCount > 0) {
+    await batch.commit();
+  }
 }
 
 export async function updateProfile(uid: string, data: { name: string; company: string; monthlyIncome: number }) {
