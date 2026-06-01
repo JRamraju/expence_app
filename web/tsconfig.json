@@ -5,12 +5,11 @@
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
     "strict": true,
-    "baseUrl": "./src",
     "types": ["vite/client"],
     "skipLibCheck": true,
     "noEmit": true,
     "paths": {
-      "*": ["*"]
+      "*": ["./src/*"]
     }
   },
   "include": ["src"]
